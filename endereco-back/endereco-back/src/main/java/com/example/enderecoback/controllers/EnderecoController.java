@@ -4,6 +4,7 @@ import com.example.enderecoback.models.DTO.CEPDTO;
 import com.example.enderecoback.models.entities.*;
 import com.example.enderecoback.repositories.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -65,12 +66,17 @@ public class EnderecoController {
 
         Endereco endereco = new Endereco();
         endereco.setCep(cepdto.getCep());
-        endereco.setBairro(bairroOpt.get());
-        endereco.setLogradouro(logradouroOpt.get());
-        endereco.setCidade(cidadeOpt.get());
-        enderecoRepository.save(endereco);
 
-        return ResponseEntity.ok(endereco);
+        Optional<Endereco> enderecoOpt = enderecoRepository.findByCep(endereco.getCep());
+        if(!enderecoOpt.isPresent()){
+            endereco.setBairro(bairroOpt.get());
+            endereco.setLogradouro(logradouroOpt.get());
+            endereco.setCidade(cidadeOpt.get());
+            enderecoRepository.save(endereco);
+
+            return ResponseEntity.ok(endereco);
+        }
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
     @GetMapping
@@ -79,9 +85,20 @@ public class EnderecoController {
         return ResponseEntity.ok(enderecos);
     }
 
-    @GetMapping("/{id}")
+    /*@GetMapping("/{id}")
     private ResponseEntity<?> get(@PathVariable Long id){
         Optional<Endereco> enderecoOpt = enderecoRepository.findById(id);
+
+        if(enderecoOpt.isPresent()){
+            return ResponseEntity.ok(enderecoOpt.get());
+        }
+
+        return ResponseEntity.notFound().build();
+    }*/
+
+    @GetMapping("/{cep}")
+    private ResponseEntity<?> get(@PathVariable String cep){
+        Optional<Endereco> enderecoOpt = enderecoRepository.findByCep(cep);
 
         if(enderecoOpt.isPresent()){
             return ResponseEntity.ok(enderecoOpt.get());
