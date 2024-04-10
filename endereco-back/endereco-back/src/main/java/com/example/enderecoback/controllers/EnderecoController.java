@@ -13,7 +13,6 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
-@CrossOrigin
 @RequestMapping("endereco")
 public class EnderecoController {
 
@@ -28,19 +27,14 @@ public class EnderecoController {
     @PostMapping
     private ResponseEntity<Endereco> create(@RequestBody CEPDTO cepdto){
 
-        Bairro bairro = new Bairro();
-        Logradouro logradouro = new Logradouro();
-        UnidadeFederacao uf = new UnidadeFederacao();
-        Cidade cidade = new Cidade();
-
-
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<ViaCepEndereco> response = restTemplate.getForEntity("http://viacep.com.br/ws/" + cepdto.getCep() + "/json", ViaCepEndereco.class);
 
         ViaCepEndereco body = response.getBody();
 
         Optional<Bairro> bairroOpt = bairroRepository.findByNome(body.getBairro());
-        if(bairroOpt.isPresent()){
+        if(!bairroOpt.isPresent()){
+            Bairro bairro = new Bairro();
             bairro.setNome(body.getBairro());
             bairroRepository.save(bairro);
         }
@@ -48,19 +42,22 @@ public class EnderecoController {
         //Optional<TipoLogradouro> tipoLogradouroOpt = tipoLogradouroRepository.findByNome(body.getLogradouro());
 
         Optional<Logradouro> logradouroOpt = logradouroRepository.findByNome(body.getLogradouro());
-        if(logradouroOpt.isPresent()){
+        if(!logradouroOpt.isPresent()){
+            Logradouro logradouro = new Logradouro();
             logradouro.setNome(body.getLogradouro());
             logradouroRepository.save(logradouro);
         }
 
         Optional<UnidadeFederacao> ufOpt = unidadeFederacaoRepository.findByNome(body.getUf());
-        if(ufOpt.isPresent()){
+        if(!ufOpt.isPresent()){
+            UnidadeFederacao uf = new UnidadeFederacao();
             uf.setNome(body.getUf());
             unidadeFederacaoRepository.save(uf);
         }
 
         Optional<Cidade> cidadeOpt = cidadeRepository.findByNome(body.getLocalidade());
-        if(cidadeOpt.isPresent()){
+        if(!cidadeOpt.isPresent()){
+            Cidade cidade = new Cidade();
             cidade.setNome(body.getLocalidade());
             cidade.setUnidadeFederacao(ufOpt.get());
             cidadeRepository.save(cidade);
